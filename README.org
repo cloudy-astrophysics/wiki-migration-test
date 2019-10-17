@@ -15,7 +15,7 @@ CLOSED: [2019-10-16 Wed 19:58]
     cd ~
     tar czf will-trac-wiki-dump.tar.gz will-trac-wiki-dump
   #+end_src
-*** Stage 2: Import wiki pages into github repo
+*** TODO Stage 2: Import wiki pages into github repo
 There are two options here:
 1. Leave files as in current format
    + It appears that trac wiki format is similar to moinmoin and mediawiki, but not quite the same as either
@@ -57,6 +57,75 @@ There are two options here:
            - Explicit links like ~[wiki:NewC17]~ are not converted either
            - Strange target-ids appear after headers, like ~{#getting_started_with_cloudy}~
      + https://gitlab.xiph.org/ePirat/trac-to-gitlab has a Trac2Down.py
+     + Tracboat also has a trac2down.py
+       + They both seem to be descended from the same code (Eric van der Vlist, 2013), but this one is more full-featured
+       + There is a function ~trac2down.convert(TEXT, BASEPATH, **kwds)~
+         + ~TEXT~ is text of wiki or ticket (or other ... ?)
+         + ~BASEPATH~ is a required argument and seems to be related to the source code tree, which I will ignore for now (set to ".")
+       + Make a simple wrapper [[file:test-trac2down.py][test-track2down.py]] to convert a single file:
+         #+begin_src python :eval no :tangle test-trac2down.py
+           import sys
+           from pathlib import Path
+           sys.path.append("../../../Source/tracboat/src/tracboat")
+           import trac2down
+
+           # Paths for reading input and saving output
+           try:
+               input_path = Path(sys.argv[1])
+               save_path = Path(sys.argv[2])
+           except (IndexError, ValueError, TypeError):
+               sys.exit(f"Usage: {sys.argv[0]} INPUT_PATH SAVE_PATH")
+
+           # Loop over all files in the input folder
+           for p in input_path.glob("*"):
+               # Open file from the dump of the trac database and convert it
+               with open(p) as f:
+                   text = trac2down.convert(f.read(), ".")
+               # Save the converted file with a ".md" extension to output folder
+               # The 3rd, 4th, 5th arguments to this function are unused
+               trac2down.save_file(text, p.name, None, None, None, save_path)
+         #+end_src
+       + Try it out
+         #+begin_src sh :results silent
+           python test-trac2down.py ../will-trac-wiki-dump ../temp-migration-test.wiki
+         #+end_src
+       + Move it to the wiki repo
+         #+begin_src sh :results silent
+           mv CompilingCloudyC17.md ../temp-migration-test.wiki
+         #+end_src
      + Maybe modify one or write my own
        + Dealing with the ~CamelCaseLinks~
          + We can get a list of all the current pages names, and then replace all mentions of these with a suitably formatted link: ~[[WikiLink]]~
+* Other useful-looking stuff
++ [ ] Should find a better home for this section
+** Documentation of gollum - the github wiki rendering engine
++ https://github.com/gollum/gollum/wiki
++ Can also be run standalone
++ It has its own wiki tag syntax, ~[[STUFF]]~ which supports
+  - internal wiki links
+  - external links
+  - images
+  - include of other files *but I think this is not supported in github wikis*
++ Also has macros - but is that really supported on github?
++ Quote from https://help.github.com/en/articles/editing-wiki-content
+  : For security and performance reasons, some syntaxes are unsupported.
+  : 
+  : Transclusion
+  : Definition lists
+  : Indentation
+  : Table of contents
+
+** Allowing math equations
++ Github doesn't support embedded javascript, so no mathjax
++ Seem to be two main approaches
+  1. Call out to some web service to render equation on-the-fly
+     - Seems very clunky
+  2. Replace equations with image or SVG
+     - would be fine if efficiently automated
++ Best bet (method 2) seems to be [[https://github.com/apps/texify][github-texify]]
+  + Main repo https://github.com/agurodriguez/github-texify
+  + Githup app install https://github.com/apps/texify
+  + Adds a commit hook that transforms all files with names ~FOO.tex.md~ to ~FOO.md~ with all latex math replaced with inline SVG images (only supports dollar signs, it seems) 
+  + There are complaints it does not support wikis
+    + See https://github.com/agurodriguez/github-texify/issues/10
+    + However, I think maybe the complainants aren't recognizing that the wiki is itself a repo - so possibly it could still work
