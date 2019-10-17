@@ -1,5 +1,4 @@
-* temp-migration-test
-** Description
+* wiki-migration-test
 Repo for testing migration of wiki (and maybe other stuff)
 ** Plan
 + This is a test-bed for conversion of the trac wiki to a github wiki
@@ -121,6 +120,9 @@ There are two options here:
      + Maybe modify one or write my own
        + Dealing with the ~CamelCaseLinks~
          + We can get a list of all the current pages names, and then replace all mentions of these with a suitably formatted link: ~[[WikiLink]]~
+         + This is now what I am doing, but need to improve it a bit
+         + I noticed that there are false positives that are inside URLs
+         + Could be fixed by not allowing any letters either side - so need to go back to regexps
 * Other useful-looking stuff
 + [ ] Should find a better home for this section
 ** Documentation of gollum - the github wiki rendering engine
