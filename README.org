@@ -30,6 +30,7 @@ There are two options here:
      - OrgMode
        - 90% support from online editor
        - Does have some features that Markdown lacks, such as tables
+       - Potential clash between org-mode link syntax and wikilinks
      - Pod
      - RDoc
      - Textile
@@ -41,7 +42,7 @@ There are two options here:
          - Auto-generates TOC
          - Headers, bold font, and external links work fine
        - *Bad*
-         - 
+         - All the verbatim code, like ~{{{whatever}}}~, is just dropped. Not surprising since this is not actually mediawiki syntax
 2. Convert to markdown
    + There are various scripts that claim to do this
      + pandoc
@@ -58,4 +59,4 @@ There are two options here:
      + https://gitlab.xiph.org/ePirat/trac-to-gitlab has a Trac2Down.py
      + Maybe modify one or write my own
        + Dealing with the ~CamelCaseLinks~
-         + We can get a list of all the current pages names, and then replace all mentions of these with a suitably formatted link
+         + We can get a list of all the current pages names, and then replace all mentions of these with a suitably formatted link: ~[[WikiLink]]~
