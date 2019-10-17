@@ -4,7 +4,7 @@
 ** Plan
 + This is a test-bed for conversion of the trac wiki to a github wiki
 
-*** DONE Stage 1: Dump the Trac wiki
+*** DONE Stage 1: Dump the pages from Trac wiki to files
 CLOSED: [2019-10-16 Wed 19:58]
 + Main difficulty was getting access to the server, but now sorted
 + Also ~trac-admin~ only seems to work when run from inside the ~webapps/trac/bin~ directory
@@ -23,19 +23,39 @@ There are two options here:
      - AsciiDoc
      - Creole
      - Markdown
+       - This is the only one with full support from the online editor
+       - This is default, and probably most commonly used on github
      - MediaWiki
+       - Zero support from online editor
      - OrgMode
+       - 90% support from online editor
+       - Does have some features that Markdown lacks, such as tables
      - Pod
      - RDoc
      - Textile
      - RestructuredText
    + I will try copy a file verbatim and adding a mediawiki extension
      - [-] Try with ~CompilingCloudyC17~
+       - This works partially
+       - *Good*
+         - Auto-generates TOC
+         - Headers, bold font, and external links work fine
+       - *Bad*
+         - 
 2. Convert to markdown
    + There are various scripts that claim to do this
      + pandoc
        #+begin_src sh
          pandoc --from mediawiki --to markdown -o WikiStart.md WikiStart
        #+end_src
-       - This was my first attempt
+       - This was my first attempt, using ~WikiStart~
+         - *Good*
+           - Headers (but see below) and links and bold seems OK
+         - *Bad*
+           - Plain text ~CamelCaseLinks~ are not honored
+           - Explicit links like ~[wiki:NewC17]~ are not converted either
+           - Strange target-ids appear after headers, like ~{#getting_started_with_cloudy}~
      + https://gitlab.xiph.org/ePirat/trac-to-gitlab has a Trac2Down.py
+     + Maybe modify one or write my own
+       + Dealing with the ~CamelCaseLinks~
+         + We can get a list of all the current pages names, and then replace all mentions of these with a suitably formatted link
