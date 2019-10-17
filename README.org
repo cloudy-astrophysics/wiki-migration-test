@@ -1,0 +1,41 @@
+* temp-migration-test
+** Description
+[TEMPORARY] Test repo for testing migration of wiki (and maybe other stuff)
+** Plan
++ This is a test-bed for conversion of the trac wiki to a github wiki
+
+*** DONE Stage 1: Dump the Trac wiki
+CLOSED: [2019-10-16 Wed 19:58]
++ Main difficulty was getting access to the server, but now sorted
++ Also ~trac-admin~ only seems to work when run from inside the ~webapps/trac/bin~ directory
++ Commands to dump the wiki files and tar them up
+  #+begin_src sh
+    cd webapps/trac/bin
+    ./trac-admin ../trac wiki dump ~/will-trac-wiki-dump
+    cd ~
+    tar czf will-trac-wiki-dump.tar.gz will-trac-wiki-dump
+  #+end_src
+*** Stage 2: Import wiki pages into github repo
+There are two options here:
+1. Leave files as in current format
+   + It appears that trac wiki format is similar to moinmoin and mediawiki, but not quite the same as either
+   + Github offers the following formats
+     - AsciiDoc
+     - Creole
+     - Markdown
+     - MediaWiki
+     - OrgMode
+     - Pod
+     - RDoc
+     - Textile
+     - RestructuredText
+   + I will try copy a file verbatim and adding a mediawiki extension
+     - [-] Try with ~CompilingCloudyC17~
+2. Convert to markdown
+   + There are various scripts that claim to do this
+     + pandoc
+       #+begin_src sh
+         pandoc --from mediawiki --to markdown -o WikiStart.md WikiStart
+       #+end_src
+       - This was my first attempt
+     + https://gitlab.xiph.org/ePirat/trac-to-gitlab has a Trac2Down.py
