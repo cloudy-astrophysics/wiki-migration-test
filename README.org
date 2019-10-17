@@ -1,6 +1,6 @@
 * temp-migration-test
 ** Description
-[TEMPORARY] Test repo for testing migration of wiki (and maybe other stuff)
+Repo for testing migration of wiki (and maybe other stuff)
 ** Plan
 + This is a test-bed for conversion of the trac wiki to a github wiki
 
@@ -36,7 +36,7 @@ There are two options here:
      - Textile
      - RestructuredText
    + I will try copy a file verbatim and adding a mediawiki extension
-     - [-] Try with ~CompilingCloudyC17~
+     - [X] Try with ~CompilingCloudyC17~
        - This works partially
        - *Good*
          - Auto-generates TOC
@@ -62,9 +62,10 @@ There are two options here:
        + There is a function ~trac2down.convert(TEXT, BASEPATH, **kwds)~
          + ~TEXT~ is text of wiki or ticket (or other ... ?)
          + ~BASEPATH~ is a required argument and seems to be related to the source code tree, which I will ignore for now (set to ".")
-       + Make a simple wrapper [[file:test-trac2down.py][test-track2down.py]] to convert a single file:
+       + Make a simple wrapper [[file:test-trac2down.py][test-track2down.py]] to convert all the dumped wiki files:
          #+begin_src python :eval no :tangle test-trac2down.py
            import sys
+           import re
            from pathlib import Path
            sys.path.append("../../../Source/tracboat/src/tracboat")
            import trac2down
@@ -76,22 +77,46 @@ There are two options here:
            except (IndexError, ValueError, TypeError):
                sys.exit(f"Usage: {sys.argv[0]} INPUT_PATH SAVE_PATH")
 
-           # Loop over all files in the input folder
+           # Get the names so that we can convert links to gollum format
+           # "CamelCaseName" -> "[[CamelCaseName]]"
+           wikinames = [p.name for p in input_path.glob("*")]
+
+
+           def fixup_wikilinks(text, targets):
+               """Add double [[...]] around wikilinks (given as `targets`)
+
+               Most prosaic method possible - simply loop over the explicit list
+               of targets.  Tries to be careful in avoiding code blocks, but
+               will still be fooled by inline code
+               """
+               lines = []
+               is_code_block = False
+               for line in text.split('\n'):
+                   # not blockquote?
+                   if not line.startswith('    '):
+                       if line.startswith("````"):
+                           is_code_block = not is_code_block
+                       if not is_code_block:
+                           for target in targets:
+                               line = line.replace(target, f"[[{target}]]")
+                       # line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'[[\1]]', line)
+                   lines.append(line)
+               return "\n".join(lines)
+
+
+           # Process all the files in the input folder
            for p in input_path.glob("*"):
                # Open file from the dump of the trac database and convert it
                with open(p) as f:
                    text = trac2down.convert(f.read(), ".")
+                   text = fixup_wikilinks(text, wikinames)
                # Save the converted file with a ".md" extension to output folder
                # The 3rd, 4th, 5th arguments to this function are unused
                trac2down.save_file(text, p.name, None, None, None, save_path)
          #+end_src
        + Try it out
          #+begin_src sh :results silent
-           python test-trac2down.py ../will-trac-wiki-dump ../temp-migration-test.wiki
-         #+end_src
-       + Move it to the wiki repo
-         #+begin_src sh :results silent
-           mv CompilingCloudyC17.md ../temp-migration-test.wiki
+           python test-trac2down.py ../will-trac-wiki-dump ../wiki-migration-test.wiki
          #+end_src
      + Maybe modify one or write my own
        + Dealing with the ~CamelCaseLinks~
@@ -129,3 +154,10 @@ There are two options here:
   + There are complaints it does not support wikis
     + See https://github.com/agurodriguez/github-texify/issues/10
     + However, I think maybe the complainants aren't recognizing that the wiki is itself a repo - so possibly it could still work
+
+
+** Continuous integration, etc with Github Actions
++ Currently this is a public beta that you have to ask to join
++ https://github.com/features/actions
++ It looks very powerful - workflows can run on windows, linux, or macos hosts, triggered by pushes, releases, etc.
++ Pricing is free for public repos, 3000 free minutes/month for private repos after beta period ends
